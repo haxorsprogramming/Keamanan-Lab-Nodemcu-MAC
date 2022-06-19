@@ -6,6 +6,8 @@
 
 #define pin_reset 0
 #define pin_ss 2
+#define buzzer 15
+#define relay 16
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 MFRC522 mfrc522(pin_ss, pin_reset);
@@ -20,12 +22,15 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
+  pinMode(buzzer, OUTPUT);
+  pinMode(relay, OUTPUT);
+  digitalWrite(relay, HIGH);
   //  Serial.println("Put your card to the reader...");
   lcd.begin();
   lcd.backlight();
   printLcd("Sistem keamanan", "laboratorium");
   delay(3000);
-  printLcd("M. Yasir", "Ilkomp Uinsu");
+  printLcd("M. Yasir", "Habibi Bako");
   delay(3000);
   printLcd("Inisialisasi", "Koneksi wifi ...");
   WiFi.begin(ssid, pass);
@@ -68,6 +73,15 @@ void cekCommand()
       delay(2500);
       printLcd("Dekatkan", "ID CARD");
       delay(2000);
+    } else if (String(payload) == "READ_CARD") {
+      printLcd("Pembacacaan", "ID CARD");
+      delay(2000);
+      printLcd("Dekatkan", "ID CARD");
+      delay(2000);
+      printLcd("Membaca", "ID CARD");
+      delay(1000);
+      bacaIdCard();
+      delay(1000);
     } else {
       printLcd("Dekatkan", "ID CARD");
       cekIdCard();
@@ -76,6 +90,30 @@ void cekCommand()
     printLcd("Error koneksi", "ke server");
   }
   http.end();  //Close connection
+}
+
+void bacaIdCard()
+{
+  if (!mfrc522.PICC_IsNewCardPresent()) {
+    return;
+  }
+  if (!mfrc522.PICC_ReadCardSerial()) {
+    return;
+  }
+  printLcd("Id card", "Terdeteksi ...");
+  delay(2000);
+
+  String content = "";
+  byte letter;
+
+  for (byte i = 0; i < mfrc522.uid.size; i++) {
+    content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+    content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+
+  content.toUpperCase();
+  printLcd("ID CARD : ", content.substring(1));
+  delay(6000);
 }
 
 void cekIdCard()
@@ -111,6 +149,7 @@ void cekIdCard()
     if (payload == "NO_ID") {
       printLcd("ID card tidak", "teregistrasi");
       delay(2000);
+      buzzCepat();
       printLcd("Harap coba ", "kembali");
       delay(2000);
     } else {
@@ -122,12 +161,46 @@ void cekIdCard()
       delay(1500);
       printLcd("Tempelkan", "jari anda");
       delay(3000);
+      printLcd("Sidik jari", "cocok");
+      delay(2000);
+      printLcd("Akses diterima", "silahkan masuk ..");
+      buzzKencang();
+      digitalWrite(relay, LOW);
+      delay(2000);
+      printLcd("Bersiap untuk", "mengunci pintu ..");
+      delay(10000);
+      digitalWrite(relay, HIGH);
     }
   } else {
     printLcd("Error koneksi", "ke server");
   }
   //  printLcd("ID Card data :", content.substring(1));
   delay(2000);
+}
+
+
+void buzzCepat()
+{
+  digitalWrite(buzzer, HIGH);
+  delay(200);
+  digitalWrite(buzzer, LOW);
+  delay(200);
+  digitalWrite(buzzer, HIGH);
+  delay(200);
+  digitalWrite(buzzer, LOW);
+  delay(200);
+}
+
+void buzzKencang()
+{
+  digitalWrite(buzzer, HIGH);
+  delay(500);
+  digitalWrite(buzzer, LOW);
+  delay(500);
+  digitalWrite(buzzer, HIGH);
+  delay(500);
+  digitalWrite(buzzer, LOW);
+  delay(500);
 }
 
 void printLcd(String teks, String teks2) {
