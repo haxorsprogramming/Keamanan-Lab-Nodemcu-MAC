@@ -15,8 +15,8 @@ MFRC522 mfrc522(pin_ss, pin_reset);
 const char *ssid =  "Kede Ndon";     //Nama SSID Wifi
 const char *pass =  "nasution123";             //Password Wifi
 WiFiClient client;
-String link = "http://192.168.0.120/Sistem-Pengaman-Laboratorium-MAC-Nodemcu-Laravel/public/api/device/status";
-String link_cek_id_card = "http://192.168.0.120/Sistem-Pengaman-Laboratorium-MAC-Nodemcu-Laravel/public/api/access/id-card/cek";
+String link = "https://yasir.justhasnah.me/api/device/status";
+String link_cek_id_card = "https://yasir.justhasnah.me/api/access/id-card/cek";
 
 void setup() {
   Serial.begin(9600);
